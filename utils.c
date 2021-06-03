@@ -24,7 +24,8 @@ double timestamp(void)
 
 
 // Certifica que o ponteiro foi alocado
-void must_alloc(void *ptr, const char *desc){
+void must_alloc(void *ptr, const char *desc)
+{
     if (!ptr){
         fprintf(stderr, "Memory allocation failure: %s\n", desc);
         exit(-1);
@@ -33,7 +34,8 @@ void must_alloc(void *ptr, const char *desc){
 
 
 // Cria uma cópia de um SL
-SistLinear_t *copiar_SL(SistLinear_t* SL){
+SistLinear_t *copiar_SL(SistLinear_t* SL)
+{
     SistLinear_t *new = alocaSistLinear(SL->n);
 
     memcpy(new->A[0], SL->A[0], sizeof(real_t) * SL->n * SL->n);
@@ -45,7 +47,8 @@ SistLinear_t *copiar_SL(SistLinear_t* SL){
 
 
 // Checa se um número é inoperável
-int invalid(real_t num){
+int invalid(real_t num)
+{
     if (num == NAN)         return 1;
     if (num == INFINITY)    return 1;
     if (num == -INFINITY)   return 1;
@@ -54,7 +57,8 @@ int invalid(real_t num){
 
 
 // Retrosubstitui as variáveis do sistema para solucioná-lo
-int retrosubs(SistLinear_t* SL){
+int retrosubs(SistLinear_t* SL)
+{
     for (int i = SL->n - 1; i >= 0; i--){
         SL->b[i] /= SL->A[i][i];
         if (invalid(SL->b[i])){
@@ -76,7 +80,8 @@ int retrosubs(SistLinear_t* SL){
 
 
 // Calcula o resíduo de um sistema linear e sua solução
-real_t *residue(SistLinear_t *SL, real_t *x){
+real_t *residue(SistLinear_t *SL, real_t *x)
+{
     real_t *res = malloc(SL->n * sizeof(real_t));
     must_alloc(res, __func__);
 
@@ -94,45 +99,52 @@ real_t *residue(SistLinear_t *SL, real_t *x){
 }
 
 
-void free_these(void **ptrs, unsigned int n){
+void free_these(void **ptrs, unsigned int n)
+{
     for (int i = 0; i < n; i++)
         free(ptrs[i]);
     free(ptrs);
 }
 
 
-int jacobi_converge(SistLinear_t *SL){
-    double sum;
-    for (int i = 0; i < SL->n; i++){
+int jacobi_converge(SistLinear_t *SL)
+{
+    int i;
+    double sum, alpha;
+    for (i = 0; i < SL->n; i++){
         sum = 0.0f;
-        for (int j = 0; j < SL->n; j++){
+        for (int j = 0; j < SL->n; j++)
             if (i != j)
-                sum += SL->A[i][j];
-        }
-        if (fabs(sum) >= fabs(SL->A[i][i]))
+                sum += fabs(SL->A[i][j]);
+        alpha = sum / fabs(SL->A[i][i]);
+        if (alpha > 1.0f)
             return 0;
     }
+
     return 1;
 }
 
 
-int seidel_converge(SistLinear_t *SL){
-    double sum;
-    real_t *betas = malloc(sizeof(real_t) * SL->n);
+int seidel_converge(SistLinear_t *SL)
+{
+    double *betas = malloc(sizeof(double) * SL->n);
+    must_alloc(betas, __func__);
+
     int i, j;
+    double sum;
     for (i = 0; i < SL->n; i++){
         sum = 0.0f;
         for (j = 0; j < i; j++)
-            sum += betas[j] * SL->A[i][j];
+            sum += betas[j] * fabs(SL->A[i][j]);
 
         for (j = i + 1; j < SL->n; j++)
-            sum += SL->A[i][j];
-        sum = fabs(sum);
-        if (sum > SL->A[i][i]){
+            sum += fabs(SL->A[i][j]);
+
+        betas[i] = sum / fabs(SL->A[i][i]);
+        if (betas[i] > 1.0f){
             free(betas);
             return 0;
         }
-        betas[i] = sum / fabs(SL->A[i][i]);
     }
     free(betas);
     return 1;
@@ -163,7 +175,7 @@ real_t max_distance(real_t *a, real_t *b, unsigned int n)
 
 int refine(SistLinear_t *SL, real_t *x)
 {
-    SistLinear_t* clone = copiar_SL(SL);
+    SistLinear_t *clone = copiar_SL(SL);
 
     real_t *res = residue(SL, x);
 

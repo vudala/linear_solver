@@ -69,6 +69,7 @@ int eliminacaoGauss (SistLinear_t *SL, real_t *x, double *tTotal)
                 liberaSistLinear(clone);
                 return -1;
             }
+
             clone->A[i][k] = 0.0f;
             for (j = k + 1; j < clone->n; j++){
                 clone->A[i][j] -= (m * clone->A[k][j]);
@@ -279,14 +280,18 @@ int refinamento(SistLinear_t *SL, real_t *x, double *tTotal)
     double time = timestamp();
     for (iter = 0; iter < MAXIT && norma > MAXNORMA; iter++){
         result = refine(SL, x);
-        if (max_distance(prev_iter, x, SL->n) < SL->erro)
-            return iter;
-        memcpy(prev_iter, x, sizeof(real_t) * SL->n);
-    
         if (result < 0)
             return result;
 
         norma = normaL2Residuo(SL, x, residue(SL, x));
+        
+        // Critério de parada b
+        if (max_distance(prev_iter, x, SL->n) < SL->erro){
+            *tTotal = timestamp() - time;
+            return iter;
+        } 
+        memcpy(prev_iter, x, sizeof(real_t) * SL->n);
+        
     }
 
     *tTotal = timestamp() - time;

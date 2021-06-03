@@ -5,16 +5,6 @@
 #include <sys/time.h>
 #include "SistemasLineares.h"
 
-/*  Retorna tempo em milisegundos
-
-    Forma de uso:
- 
-    double tempo;
-    tempo = timestamp();
-    <trecho de programa do qual se deseja medir tempo>
-    tempo = timestamp() - tempo;
-*/
-
 #define MAXNORMA 5.0f
 
 double timestamp(void);

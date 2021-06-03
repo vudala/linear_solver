@@ -19,4 +19,4 @@ purge: clean
 	@rm -f $(OUTPUT)
 
 run: $(OUTPUT) 
-	./$(OUTPUT) < input.in
+	./$(OUTPUT) < sistemas.dat
